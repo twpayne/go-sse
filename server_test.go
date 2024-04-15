@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -48,7 +47,7 @@ func TestOneEvent(t *testing.T) {
 		"data: eventData",
 		"retry: 1000",
 		"",
-	), body)
+	), string(body))
 }
 
 func TestConnectFunc(t *testing.T) {
@@ -72,10 +71,6 @@ func TestConnectFunc(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusTooManyRequests, resp.StatusCode)
 	}
-}
-
-func joinLines(lines ...string) []byte {
-	return []byte(strings.Join(lines, "\n") + "\n")
 }
 
 func newTestSSEServer(options ...sse.ServerOption) *httptest.Server {
