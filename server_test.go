@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -48,6 +49,29 @@ func TestOneEvent(t *testing.T) {
 		"retry: 1000",
 		"",
 	), body)
+}
+
+func TestConnectFunc(t *testing.T) {
+	server := newTestSSEServer(
+		sse.WithConnectFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
+			statusCode, _ := strconv.Atoi(r.URL.Query().Get("statusCode"))
+			w.WriteHeader(statusCode)
+			result, _ := strconv.ParseBool(r.URL.Query().Get("result"))
+			return result
+		}),
+	)
+
+	{
+		resp, err := server.Client().Get(server.URL + "/events?statusCode=200&result=true")
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	}
+
+	{
+		resp, err := server.Client().Get(server.URL + "/events?statusCode=429&result=false")
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusTooManyRequests, resp.StatusCode)
+	}
 }
 
 func joinLines(lines ...string) []byte {
