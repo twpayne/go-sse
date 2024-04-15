@@ -11,6 +11,7 @@ import (
 // A Server is a Server Sent Events Server.
 type Server struct {
 	connectFunc     ConnectFunc
+	channelSizeFunc ChannelSizeFunc
 	establishedFunc EstablishedFunc
 	errorFunc       ErrorFunc
 }
@@ -19,6 +20,10 @@ type Server struct {
 // connection is established. If it returns false then it should write the
 // response to w.
 type ConnectFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request) bool
+
+// A ChannelSizeFunc is called when a connection is established. It returns the
+// channel size for the client.
+type ChannelSizeFunc func(ctx context.Context, r *http.Request) int
 
 // An EstablishedFunc is called when a connection with the client is
 // established. It receives a channel to which it should write events to be sent
@@ -40,6 +45,13 @@ func WithConnectFunc(connectFunc ConnectFunc) ServerOption {
 	}
 }
 
+// WithChannelSizeFunc sets the channel size function.
+func WithChannelSizeFunc(channelSizeFunc ChannelSizeFunc) ServerOption {
+	return func(s *Server) {
+		s.channelSizeFunc = channelSizeFunc
+	}
+}
+
 // WithEstablishedFunc sets the established function.
 func WithEstablishedFunc(establishedFunc EstablishedFunc) ServerOption {
 	return func(s *Server) {
@@ -58,6 +70,7 @@ func WithErrorFunc(errorFunc ErrorFunc) ServerOption {
 func NewServer(options ...ServerOption) *Server {
 	s := &Server{
 		connectFunc:     DefaultConnectFunc,
+		channelSizeFunc: DefaultChannelSizeFunc,
 		establishedFunc: DefaultEstablishedFunc,
 		errorFunc:       DefaultErrorFunc,
 	}
@@ -80,7 +93,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.WriteHeader(http.StatusOK)
 
-	ch := make(chan Event)
+	ch := make(chan Event, s.channelSizeFunc(ctx, r))
 	go s.establishedFunc(ctx, ch, r)
 
 	var flush func()
@@ -117,6 +130,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // DefaultConnectFunc is the default connect function. It always returns true.
 func DefaultConnectFunc(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
 	return true
+}
+
+// DefaultChannelSizeFunc is the default channel size function. It always
+// returns a small non-zero constant.
+func DefaultChannelSizeFunc(ctx context.Context, r *http.Request) int {
+	return 16
 }
 
 // DefaultEstablishedFunc is the default established function. It immediately
