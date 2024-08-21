@@ -88,9 +88,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Content-Type", "text/event-stream")
 	w.WriteHeader(http.StatusOK)
 
 	ch := make(chan Event, s.channelSizeFunc(ctx, r))
@@ -101,10 +101,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		flush = flusher.Flush
 	}
 
-	done := ctx.Done()
 	for {
 		select {
-		case <-done:
+		case <-ctx.Done():
 			return
 		case event, ok := <-ch:
 			if !ok {

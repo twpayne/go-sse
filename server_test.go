@@ -36,9 +36,9 @@ func TestOneEvent(t *testing.T) {
 	resp, err := server.Client().Get(server.URL + "/events")
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, "text/event-stream", resp.Header.Get("Content-Type"))
 	assert.Equal(t, "no-cache", resp.Header.Get("Cache-Control"))
 	assert.Equal(t, "keep-alive", resp.Header.Get("Connection"))
+	assert.Equal(t, "text/event-stream", resp.Header.Get("Content-Type"))
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, joinLines(
