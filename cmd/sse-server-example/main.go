@@ -1,16 +1,16 @@
-# go-sse
+package main
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/twpayne/go-sse)](https://pkg.go.dev/github.com/twpayne/go-sse)
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
 
-Package sse implements a [Server-Sent
-Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
-server.
+	"github.com/twpayne/go-sse"
+)
 
-In short, it makes sending events to a client just like writing to a Go channel.
-
-## Example
-
-```go
+func main() {
 	sseServer := sse.NewServer(
 		sse.WithConnectFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -32,8 +32,4 @@ In short, it makes sending events to a client just like writing to a Go channel.
 	serverMux.Handle("GET /events", sseServer)
 
 	http.ListenAndServe(":8080", serverMux)
-```
-
-## License
-
-MIT
+}
