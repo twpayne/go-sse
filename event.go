@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// An Event is a server sent event.
+// An Event is a server-sent event.
 type Event struct {
 	Name  string
 	ID    string

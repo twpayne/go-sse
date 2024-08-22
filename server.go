@@ -1,4 +1,4 @@
-// Package sse implements a Server Sent Events server.
+// Package sse implements a Server-Sent Events server.
 //
 // See https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events.
 package sse
@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-// A Server is a Server Sent Events Server.
+// A Server is a Server-Sent Events Server.
 type Server struct {
 	connectFunc     ConnectFunc
 	channelSizeFunc ChannelSizeFunc
